@@ -14,7 +14,7 @@ logging.basicConfig(
 )
 
 TOKEN = "7593027572:AAGKallf8NPo8JQESeh9nJwqbRiZvyHyTEo"
-WINNER_COUNT = 30
+WINNER_COUNT = 20
 GUARANTEED_WINNERS = [
     "hidrojoe",
     "og1331x",
