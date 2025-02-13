@@ -198,6 +198,22 @@ async def giveaway_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f'Total Prize Pool: {WINNER_COUNT * 500}TL'
     )
 
+async def last_winner(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show the last giveaway winners"""
+    await update.message.reply_text(
+        "14 ŞUBAT SEVGİLİLER GÜNÜ ÇEKİLİŞİ KAZANANLARI (200'ER TL)\n"
+        "1. @Vazoltoptan\n"
+        "2. @desert121315\n"
+        "3. @TcloozY74\n"
+        "4. @SongllA\n"
+        "5. Furkan Şahin\n"
+        "6. Poyraz\n"
+        "7. @Ramoxn7\n"
+        "8. @gunduzyunus\n"
+        "9. @andres5151\n"
+        "10. @ozcan4610"
+    )
+
 def main():
     load_giveaways()
     
@@ -205,6 +221,7 @@ def main():
 
     application.add_handler(CommandHandler("giveaway", start_giveaway))
     application.add_handler(CommandHandler("status", giveaway_status))
+    application.add_handler(CommandHandler("lastwinner", last_winner))
     
     application.add_handler(MessageHandler(
         filters.Regex(r'^!cekilis$'), join_giveaway
