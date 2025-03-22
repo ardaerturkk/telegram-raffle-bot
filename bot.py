@@ -75,11 +75,11 @@ async def start_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_giveaways()
 
     await update.message.reply_text(
-        f'BetLike Özel Çekilişimiz Başladı!\n'
+        f'BetTicket Özel Çekilişimiz Başladı!\n'
         f'Ödül 20 kişiye 500\'er TL\n'
         f'Süre: {days} gün\n'
         f'Bitiş: {end_time.strftime("%d.%m.%Y %H:%M")}\n'
-        f'Katılmak için !betlikecekilis yazın!'
+        f'Katılmak için !betticketcekilis yazın!'
     )
 
     async def end_giveaway():
@@ -144,7 +144,7 @@ async def join_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
     giveaway['participants'].add(user_id)
     save_giveaways()
     
-    await update.message.reply_text('BetLike x JUGADOR BEY Çekilişine başarıyla katıldınız. Bol şanslar!')
+    await update.message.reply_text('BetTicket x JUGADOR BEY Çekilişine başarıyla katıldınız. Bol şanslar!')
 
 async def giveaway_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -196,7 +196,7 @@ Mevcut komutlar:
 /giveaway <gün> <ödül> - Yeni çekiliş başlat
 /status - Çekiliş durumunu kontrol et
 /lastwinner - Son çekiliş kazananlarını gör
-!betlikecekilis - Aktif çekilişe katıl
+!betticketcekilis - Aktif çekilişe katıl
 """
     await update.message.reply_text(help_text)
 
@@ -218,7 +218,7 @@ def main():
     
     # Add message handlers
     application.add_handler(MessageHandler(
-        filters.Regex(r'^!betlikecekilis$'), join_giveaway
+        filters.Regex(r'^!betticketcekilis$'), join_giveaway
     ))
 
     logger.info("Bot is ready!")
