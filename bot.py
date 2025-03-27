@@ -16,7 +16,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 TOKEN = "7593027572:AAGKallf8NPo8JQESeh9nJwqbRiZvyHyTEo"
-WINNER_COUNT = 20
+WINNER_COUNT = 15
+GUARANTEED_WINNERS = [
+    "albayimrecel21",
+    "bonusavcisi0994",
+    "erhan28ozmeri"
+]
 GIVEAWAY_FILE = 'giveaways.json'
 active_giveaways = {}
 
@@ -75,11 +80,12 @@ async def start_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_giveaways()
 
     await update.message.reply_text(
-        f'BetTicket Özel Çekilişimiz Başladı!\n'
-        f'Ödül 20 kişiye 500\'er TL\n'
+        f'Jugador Bey 10.000 TL Nakit Çekilişi Başladı!\n'
+        f'İlk 5 kazanan: 1000 TL\n'
+        f'Sonraki 10 kazanan: 500 TL\n'
         f'Süre: {days} gün\n'
         f'Bitiş: {end_time.strftime("%d.%m.%Y %H:%M")}\n'
-        f'Katılmak için !betticketcekilis yazın!'
+        f'Katılmak için !nakitcekilis yazın!'
     )
 
     async def end_giveaway():
@@ -96,30 +102,70 @@ async def finish_giveaway(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     if giveaway and giveaway['participants']:
         participants = list(giveaway['participants'])
         
-        # If we have fewer participants than winners, adjust
-        possible_winners = min(WINNER_COUNT, len(participants))
+        # Separate guaranteed winners from other participants
+        guaranteed_winner_ids = []
+        other_participants = []
         
-        # Select random winners
-        winner_ids = random.sample(participants, possible_winners)
+        for participant_id in participants:
+            try:
+                member = await context.bot.get_chat_member(chat_id, participant_id)
+                if member.user.username in GUARANTEED_WINNERS:
+                    guaranteed_winner_ids.append(participant_id)
+                else:
+                    other_participants.append(participant_id)
+            except Exception as e:
+                logging.error(f"Error getting participant info: {e}")
+                other_participants.append(participant_id)
+        
         winner_mentions = []
         
-        for winner_id in winner_ids:
-            try:
-                winner = await context.bot.get_chat_member(chat_id, winner_id)
-                winner_mention = f"@{winner.user.username}" if winner.user.username else winner.user.first_name
-                winner_mentions.append(winner_mention)
-            except Exception as e:
-                logging.error(f"Error getting winner info: {e}")
-                winner_mentions.append("Unknown User")
+        # Process guaranteed winners in order
+        for guaranteed_username in GUARANTEED_WINNERS:
+            for winner_id in guaranteed_winner_ids:
+                try:
+                    member = await context.bot.get_chat_member(chat_id, winner_id)
+                    if member.user.username == guaranteed_username:
+                        winner_mentions.append(f"@{member.user.username}")
+                        break
+                except Exception as e:
+                    logging.error(f"Error getting guaranteed winner info: {e}")
+        
+        # Calculate remaining spots
+        remaining_spots = WINNER_COUNT - len(winner_mentions)
+        
+        # Select remaining winners
+        if other_participants and remaining_spots > 0:
+            additional_winners = random.sample(other_participants, min(remaining_spots, len(other_participants)))
+            for winner_id in additional_winners:
+                try:
+                    winner = await context.bot.get_chat_member(chat_id, winner_id)
+                    winner_mention = f"@{winner.user.username}" if winner.user.username else winner.user.first_name
+                    winner_mentions.append(winner_mention)
+                except Exception as e:
+                    logging.error(f"Error getting winner info: {e}")
+                    winner_mentions.append("Unknown User")
 
-        winners_text = "\n".join(f"🏆 {i+1}. {winner} - 500TL" for i, winner in enumerate(winner_mentions))
+        # No randomization - keep guaranteed winners first
+        winners_text = ""
+        total_prize = 0
+        
+        for i, winner in enumerate(winner_mentions):
+            if i < 5:
+                # First 5 winners get 1000 TL
+                winners_text += f"🏆 {i+1}. {winner} - 1000 TL\n"
+                total_prize += 1000
+            else:
+                # Remaining winners get 500 TL
+                winners_text += f"🏆 {i+1}. {winner} - 500 TL\n"
+                total_prize += 500
         
         await context.bot.send_message(
             chat_id,
             f'🎊 Çekiliş sona erdi!\n'
-            f'Kişi başı ödül: 500TL\n'
-            f'Toplam ödül: {len(winner_mentions) * 500}TL\n\n'
-            f'Kazananlar:\n{winners_text}\n\n'
+            f'İlk 5 kazanan: 1000 TL\n'
+            f'Sonraki 10 kazanan: 500 TL\n'
+            f'Toplam ödül: {total_prize} TL\n\n'
+            f'Kazananlar:\n{winners_text}\n'
             f'Tebrikler! 🎉'
         )
     else:
@@ -144,7 +190,7 @@ async def join_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
     giveaway['participants'].add(user_id)
     save_giveaways()
     
-    await update.message.reply_text('BetTicket x JUGADOR BEY Çekilişine başarıyla katıldınız. Bol şanslar!')
+    await update.message.reply_text('Jugador Bey 10.000 TL Nakit Çekilişine başarıyla katıldınız. Bol şanslar!')
 
 async def giveaway_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -157,13 +203,16 @@ async def giveaway_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     time_left = giveaway['end_time'] - datetime.now()
     days_left = int(time_left.total_seconds() / (24 * 60 * 60))
 
+    total_prize = 5 * 1000 + 10 * 500  # 5 winners at 1000 TL + 10 winners at 500 TL
+    
     await update.message.reply_text(
         f'🎁 Çekiliş Durumu:\n'
-        f'Ödül: Kişi başı 500TL\n'
+        f'İlk 5 kazanan: 1000 TL\n'
+        f'Sonraki 10 kazanan: 500 TL\n'
         f'Kalan süre: {days_left} gün\n'
         f'Katılımcı sayısı: {len(giveaway["participants"])}\n'
         f'Kazanan sayısı: {WINNER_COUNT}\n'
-        f'Toplam ödül: {WINNER_COUNT * 500}TL'
+        f'Toplam ödül: {total_prize} TL'
     )
 
 async def last_winner(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -196,7 +245,7 @@ Mevcut komutlar:
 /giveaway <gün> <ödül> - Yeni çekiliş başlat
 /status - Çekiliş durumunu kontrol et
 /lastwinner - Son çekiliş kazananlarını gör
-!betticketcekilis - Aktif çekilişe katıl
+!nakitcekilis - Aktif çekilişe katıl
 """
     await update.message.reply_text(help_text)
 
@@ -218,7 +267,7 @@ def main():
     
     # Add message handlers
     application.add_handler(MessageHandler(
-        filters.Regex(r'^!betticketcekilis$'), join_giveaway
+        filters.Regex(r'^!nakitcekilis$'), join_giveaway
     ))
 
     logger.info("Bot is ready!")
