@@ -16,7 +16,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 TOKEN = "7293616357:AAGPSnT-GNRirA-DlCP-lFkXO-7gYP68-CM"
-WINNER_COUNT = 30  # Changed to 30 winners
+WINNER_COUNT = 30
 GIVEAWAY_FILE = 'giveaways.json'
 active_giveaways = {}
 
@@ -161,7 +161,7 @@ async def giveaway_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     time_left = giveaway['end_time'] - datetime.now()
     days_left = int(time_left.total_seconds() / (24 * 60 * 60))
 
-    total_prize = WINNER_COUNT * 500  # 30 winners at 500 TL each
+    total_prize = WINNER_COUNT * 500
     
     await update.message.reply_text(
         f'🎁 Çekiliş Durumu:\n'
@@ -187,6 +187,45 @@ async def last_winner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error in last_winner command: {e}")
 
+async def sonuclar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show the giveaway results when !sonuclar is used"""
+    logger.info("Sonuclar command received")
+    try:
+        await update.message.reply_text("""15.000 TL dev çekiliş kazananları (02.07.2025):
+@martenzit88
+@selahattinsahiin
+@ylyas3421
+@Leckone
+@ademmmustafa
+@SongllA
+@ozcan4610
+@Busaydg
+@burkican18
+@Berkebay_lar
+@nomek37
+@CoolbayTR
+@Azamatik93
+@ayktsnrs1903
+@Yineyattik
+@recepTac7
+@DEATHSET
+@burkican18
+@EmrahMfsse
+Poyraz
+@biyonick
+Burcu
+@hidrojoe
+@burak_bezci
+@cloopp4
+@taramalii
+@abdullahzorbaz
+@Nail551
+Kara Ali
+@mehmetmcam""")
+        logger.info("Sonuclar message sent successfully")
+    except Exception as e:
+        logger.error(f"Error in sonuclar command: {e}")
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handler for /start command"""
     await update.message.reply_text("Bot çalışıyor! Komutları görmek için /help yazın.")
@@ -199,6 +238,7 @@ Mevcut komutlar:
 /status - Çekiliş durumunu kontrol et
 /lastwinner - Son çekiliş kazananlarını gör
 !nakitcekilis - Aktif çekilişe katıl
+!sonuclar - 15.000 TL çekiliş sonuçları
 """
     await update.message.reply_text(help_text)
 
@@ -221,6 +261,11 @@ def main():
     # Add message handlers
     application.add_handler(MessageHandler(
         filters.Regex(r'^!nakitcekilis$'), join_giveaway
+    ))
+    
+    # Add !sonuclar handler
+    application.add_handler(MessageHandler(
+        filters.Regex(r'^!sonuclar$'), sonuclar
     ))
 
     logger.info("Bot is ready!")
