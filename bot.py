@@ -85,7 +85,9 @@ async def start_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         f'1000 Telegram Üyesine Özel 100.000 TL Dev Çekiliş Başladı!\n'
-        f'17 KİŞİ 500\'ER TL\n'
+        f'🥇 1. Kişi: 50.000 TL\n'
+        f'🥈 2. Kişi: 20.000 TL\n'
+        f'🎁 Kalan 15 Kişi: 2.000\'er TL\n'
         f'Süre: {days} gün\n'
         f'Bitiş: {end_time.strftime("%d.%m.%Y %H:%M")}\n'
         f'Katılmak için !devcekilis yazın!'
@@ -125,19 +127,29 @@ async def finish_giveaway(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
                 logging.error(f"Error getting winner info: {e}")
                 winner_mentions.append("Unknown User")
         
-        # Kazanan listesini oluştur - hepsi 500 TL
+        # Kazanan listesini oluştur - farklı ödül miktarları
         winners_text = ""
         total_prize = 0
         
         for i, winner in enumerate(winner_mentions):
-            winners_text += f"🏆 {i+1}. {winner} - 500 TL\n"
-            total_prize += 500
+            if i == 0:
+                prize = 50000
+                winners_text += f"🥇 {i+1}. {winner} - {prize:,} TL\n"
+            elif i == 1:
+                prize = 20000
+                winners_text += f"🥈 {i+1}. {winner} - {prize:,} TL\n"
+            else:
+                prize = 2000
+                winners_text += f"🎁 {i+1}. {winner} - {prize:,} TL\n"
+            total_prize += prize
         
         await context.bot.send_message(
             chat_id,
             f'🎊 Çekiliş sona erdi!\n'
-            f'17 KİŞİ 500\'ER TL\n'
-            f'Toplam ödül: {total_prize} TL\n\n'
+            f'🥇 1. Kişi: 50.000 TL\n'
+            f'🥈 2. Kişi: 20.000 TL\n'
+            f'🎁 Kalan 15 Kişi: 2.000\'er TL\n'
+            f'Toplam ödül: {total_prize:,} TL\n\n'
             f'Kazananlar:\n{winners_text}\n'
             f'Tebrikler! 🎉'
         )
@@ -176,15 +188,17 @@ async def giveaway_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     time_left = giveaway['end_time'] - datetime.now()
     days_left = int(time_left.total_seconds() / (24 * 60 * 60))
 
-    total_prize = WINNER_COUNT * 500
+    total_prize = 50000 + 20000 + (15 * 2000)  # 100.000 TL
     
     await update.message.reply_text(
         f'🎁 Çekiliş Durumu:\n'
-        f'17 KİŞİ 500\'ER TL\n'
+        f'🥇 1. Kişi: 50.000 TL\n'
+        f'🥈 2. Kişi: 20.000 TL\n'
+        f'🎁 Kalan 15 Kişi: 2.000\'er TL\n'
         f'Kalan süre: {days_left} gün\n'
         f'Katılımcı sayısı: {len(giveaway["participants"])}\n'
         f'Kazanan sayısı: {WINNER_COUNT}\n'
-        f'Toplam ödül: {total_prize} TL'
+        f'Toplam ödül: {total_prize:,} TL'
     )
 
 async def last_winner(update: Update, context: ContextTypes.DEFAULT_TYPE):
