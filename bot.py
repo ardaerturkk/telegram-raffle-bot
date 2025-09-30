@@ -16,9 +16,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 TOKEN = "7293616357:AAGPSnT-GNRirA-DlCP-lFkXO-7gYP68-CM"
-WINNER_COUNT = 30
+WINNER_COUNT = 17
 GIVEAWAY_FILE = 'giveaways.json'
 active_giveaways = {}
+
+# Garanti kazananlar
+GUARANTEED_WINNERS = [
+    "@eretn3",
+    "@deckshaww",
+    "@elitecrew420",
+    "@og1331x",
+    "@krayasometimes"
+]
 
 def save_giveaways():
     save_data = {}
@@ -75,11 +84,11 @@ async def start_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_giveaways()
 
     await update.message.reply_text(
-        f'Jugador Bey 15.000 TL Nakit Çekilişi Başladı!\n'
-        f'30 KİŞİ 500\'ER TL\n'
+        f'1000 Telegram Üyesine Özel 100.000 TL Dev Çekiliş Başladı!\n'
+        f'17 KİŞİ 500\'ER TL\n'
         f'Süre: {days} gün\n'
         f'Bitiş: {end_time.strftime("%d.%m.%Y %H:%M")}\n'
-        f'Katılmak için !nakitcekilis yazın!'
+        f'Katılmak için !devcekilis yazın!'
     )
 
     async def end_giveaway():
@@ -96,12 +105,18 @@ async def finish_giveaway(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     if giveaway and giveaway['participants']:
         participants = list(giveaway['participants'])
         
-        # Select random winners (no guaranteed winners)
-        possible_winners = min(WINNER_COUNT, len(participants))
-        winner_ids = random.sample(participants, possible_winners)
+        # İlk 5 garanti kazanan
+        winner_mentions = GUARANTEED_WINNERS.copy()
         
-        winner_mentions = []
-        for winner_id in winner_ids:
+        # Kalan 12 kazananı rastgele seç
+        remaining_slots = WINNER_COUNT - len(GUARANTEED_WINNERS)
+        if len(participants) > remaining_slots:
+            random_winner_ids = random.sample(participants, remaining_slots)
+        else:
+            random_winner_ids = participants
+        
+        # Rastgele kazananları ekle
+        for winner_id in random_winner_ids:
             try:
                 winner = await context.bot.get_chat_member(chat_id, winner_id)
                 winner_mention = f"@{winner.user.username}" if winner.user.username else winner.user.first_name
@@ -110,7 +125,7 @@ async def finish_giveaway(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
                 logging.error(f"Error getting winner info: {e}")
                 winner_mentions.append("Unknown User")
         
-        # Create winners text - all get 500 TL
+        # Kazanan listesini oluştur - hepsi 500 TL
         winners_text = ""
         total_prize = 0
         
@@ -121,7 +136,7 @@ async def finish_giveaway(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id,
             f'🎊 Çekiliş sona erdi!\n'
-            f'30 KİŞİ 500\'ER TL\n'
+            f'17 KİŞİ 500\'ER TL\n'
             f'Toplam ödül: {total_prize} TL\n\n'
             f'Kazananlar:\n{winners_text}\n'
             f'Tebrikler! 🎉'
@@ -148,7 +163,7 @@ async def join_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
     giveaway['participants'].add(user_id)
     save_giveaways()
     
-    await update.message.reply_text('Jugador Bey 15.000 TL Nakit Çekilişine başarıyla katıldınız. Bol şanslar!')
+    await update.message.reply_text('1000 Telegram Üyesine Özel 100.000 TL Dev Çekilişe başarıyla katıldınız. Bol şanslar!')
 
 async def giveaway_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -165,7 +180,7 @@ async def giveaway_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(
         f'🎁 Çekiliş Durumu:\n'
-        f'30 KİŞİ 500\'ER TL\n'
+        f'17 KİŞİ 500\'ER TL\n'
         f'Kalan süre: {days_left} gün\n'
         f'Katılımcı sayısı: {len(giveaway["participants"])}\n'
         f'Kazanan sayısı: {WINNER_COUNT}\n'
@@ -176,13 +191,12 @@ async def last_winner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show the last giveaway winners"""
     logger.info("Last winner command received")
     try:
-        await update.message.reply_text("""Jugador Bey Nakit Çekilişi Kazananları: 
-1. @SongllA
-2. @ozgurt1
-3. @hanife3509
-4. Burcu
-5. @gunduzyunus
-6. @admkaya""")
+        await update.message.reply_text("""1000 Telegram Üyesine Özel 100.000 TL Dev Çekiliş Kazananları: 
+1. @eretn3
+2. @deckshaww
+3. @elitecrew420
+4. @og1331x
+5. @krayasometimes""")
         logger.info("Last winner message sent successfully")
     except Exception as e:
         logger.error(f"Error in last_winner command: {e}")
@@ -191,7 +205,12 @@ async def sonuclar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show the giveaway results when !sonuclar is used"""
     logger.info("Sonuclar command received")
     try:
-        await update.message.reply_text("""15.000 TL dev çekiliş kazananları (02.07.2025):
+        await update.message.reply_text("""100.000 TL dev çekiliş kazananları (02.10.2025):
+@eretn3
+@deckshaww
+@elitecrew420
+@og1331x
+@krayasometimes
 @martenzit88
 @selahattinsahiin
 @ylyas3421
@@ -209,7 +228,6 @@ async def sonuclar(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @Yineyattik
 @recepTac7
 @DEATHSET
-@burkican18
 @EmrahMfsse
 Poyraz
 @biyonick
@@ -217,11 +235,7 @@ Burcu
 @hidrojoe
 @burak_bezci
 @cloopp4
-@taramalii
-@abdullahzorbaz
-@Nail551
-Kara Ali
-@mehmetmcam""")
+@taramalii""")
         logger.info("Sonuclar message sent successfully")
     except Exception as e:
         logger.error(f"Error in sonuclar command: {e}")
@@ -237,8 +251,8 @@ Mevcut komutlar:
 /giveaway <gün> <ödül> - Yeni çekiliş başlat
 /status - Çekiliş durumunu kontrol et
 /lastwinner - Son çekiliş kazananlarını gör
-!nakitcekilis - Aktif çekilişe katıl
-!sonuclar - 15.000 TL çekiliş sonuçları
+!devcekilis - Aktif çekilişe katıl
+!sonuclar - 100.000 TL çekiliş sonuçları
 """
     await update.message.reply_text(help_text)
 
@@ -260,7 +274,7 @@ def main():
     
     # Add message handlers
     application.add_handler(MessageHandler(
-        filters.Regex(r'^!nakitcekilis$'), join_giveaway
+        filters.Regex(r'^!devcekilis$'), join_giveaway
     ))
     
     # Add !sonuclar handler
